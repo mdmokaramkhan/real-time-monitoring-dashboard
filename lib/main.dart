@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:real_time_monitoring_dashboard/screens/dashboard_screen.dart';
+import 'package:real_time_monitoring_dashboard/services/cpu_provider.dart';
 import 'package:real_time_monitoring_dashboard/theme/app_theme.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => CpuProvider(),
+      child: const MyApp()
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -15,16 +23,7 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      home: const Dashboard(),
+      home: const DashboardScreen(),
     );
-  }
-}
-
-class Dashboard extends StatelessWidget {
-  const Dashboard({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container();
   }
 }
