@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:real_time_monitoring_dashboard/screens/widgets/cpu_chart.dart';
+import 'package:real_time_monitoring_dashboard/screens/widgets/memory_chart.dart';
 
 import '../services/cpu_provider.dart';
 import '../theme/app_theme.dart';
@@ -76,37 +78,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header section
-            Row(
-              children: [
-                Text(
-                  'System Overview',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                const Spacer(),
-                _buildStatusIndicator(provider.isMonitoring),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Current system performance metrics',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 24),
-            
-            // Top section with system metrics
-            _buildMetricsSection(context, stats, getValueColor, screenSize),
-            
-            const SizedBox(height: 32),
-            
-            // Future charts or detailed metrics
-            Expanded(
-              child: _buildDetailedSection(context, stats),
-            ),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header section
+              Row(
+                children: [
+                  Text(
+                    'System Overview',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  const Spacer(),
+                  _buildStatusIndicator(provider.isMonitoring),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Current system performance metrics',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 24),
+              
+              // Top section with system metrics
+              _buildMetricsSection(context, stats, getValueColor, screenSize),
+              
+              const SizedBox(height: 32),
+              
+              // Charts section
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 400,
+                      child: const CpuChartCard(),
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: SizedBox(
+                      height: 400,
+                      child: const MemoryChartCard(),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -224,70 +243,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (width < 900) return 3.2;    // Medium screens
     if (width < 1400) return 3.0;   // Large screens
     return 3.2;                     // Desktops
-  }
-
-  // Placeholder for detailed metrics section (charts, graphs, etc.)
-  Widget _buildDetailedSection(BuildContext context, dynamic stats) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: Theme.of(context).dividerColor.withAlpha(0.3 * 255 ~/ 1),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  'Performance History',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const Spacer(),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.file_download, size: 18),
-                  label: const Text('Export Data'),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Export feature coming soon')),
-                    );
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.bar_chart,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.primary.withAlpha(0.3 * 255 ~/ 1),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      'Detailed metrics charts coming soon!',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'This area will contain performance history charts and data visualization',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 
