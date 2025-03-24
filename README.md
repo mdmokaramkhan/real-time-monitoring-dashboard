@@ -1,14 +1,34 @@
-# Real-Time Monitoring Dashboard
+# 📊 Real-Time Process Monitoring Dashboard
+[![Flutter](https://img.shields.io/badge/Flutter-3.29.0+-blue.svg)](https://flutter.dev/)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://flutter.dev)
 
-A full-fledged real-time process monitoring dashboard built with Flutter and C++ FFI for cross-platform system performance monitoring.
-
-## 📋 Overview
-
-This application provides real-time monitoring of system resources including CPU usage, memory consumption, disk usage, and temperature in a clean, intuitive dashboard interface. It's designed to work across multiple platforms (macOS, Windows, Linux) using Flutter's cross-platform capabilities and native integration via FFI.
+A cross-platform desktop application for real-time system process monitoring and management, built with Flutter and C++ FFI.
 
 ## ✨ Features
 
-- **Real-time CPU monitoring** with percentage visualization
-- **Memory usage tracking** with used/total memory display
-- **Disk usage monitoring** with percentage visualization
-- **System temperature readings** in real-time
+## 🛠️ Technology Stack
+
+| Component | Technology |
+|-----------|------------|
+| **Frontend UI** | Flutter with Material Design |
+| **Backend Logic** | C++ with native system APIs |
+| **Integration** | Dart FFI (Foreign Function Interface) |
+
+## 📦 Dependencies & Packages
+| Package | Purpose |
+|---------|---------|
+
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- [Flutter SDK](https://flutter.dev/docs/get-started/install) (version 3.29.0)
+- [Git](https://git-scm.com/downloads)
+- Platform-specific development tools:
+
+  | Platform | Requirements |
+  |----------|--------------|
+  | **Windows** | Visual Studio with C++ Build Tools |
+  | **Linux** | g++, make, and required development libraries |
+  | **macOS** | Xcode with Command Line Tools |
