@@ -1,0 +1,10 @@
+^C:\USERS\DELL\PROJECTS\REAL-TIME-MONITORING-DASHBOARD\NATIVE\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/DELL/projects/real-time-monitoring-dashboard/native -BC:/Users/DELL/projects/real-time-monitoring-dashboard/native/build --check-stamp-file C:/Users/DELL/projects/real-time-monitoring-dashboard/native/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

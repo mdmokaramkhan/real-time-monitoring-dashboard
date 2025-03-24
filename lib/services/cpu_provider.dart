@@ -1,30 +1,78 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:ffi';
+import 'package:ffi/ffi.dart';  // Add this import for calloc
 import 'package:flutter/foundation.dart';
-import 'package:real_time_monitoring_dashboard/services/cpu_services.dart';
 import '../models/system_stats.dart';
 
+typedef GetCpuUsageFunc = Double Function();
+typedef GetCpuUsage = double Function();
+
+// Add new typedefs for native functions
+typedef GetMemoryInfoFunc = Void Function(Pointer<Uint64> used, Pointer<Uint64> total);
+typedef GetMemoryInfo = void Function(Pointer<Uint64> used, Pointer<Uint64> total);
+
+// Add new typedef for temperature function
+typedef GetCpuTemperatureFunc = Double Function();
+typedef GetCpuTemperature = double Function();
+
+typedef GetDiskInfoFunc = Void Function(Pointer<Uint64> used, Pointer<Uint64> total);
+typedef GetDiskInfo = void Function(Pointer<Uint64> used, Pointer<Uint64> total);
+
 class CpuProvider extends ChangeNotifier {
-  final CpuService _cpuService = CpuService();
   SystemStats _stats = SystemStats();
   Timer? _updateTimer;
   bool _isMonitoring = false;
   
-  // Modify CPU history tracking to store only last 30 seconds
   final List<double> _cpuHistory = [];
-  final int _maxHistoryPoints = 30; // Reduced to 30 seconds of data
-  
-  // Add memory history tracking
   final List<double> _memoryHistory = [];
+  final int _maxHistoryPoints = 30;
   
   SystemStats get stats => _stats;
   bool get isMonitoring => _isMonitoring;
   List<double> get cpuHistory => List.unmodifiable(_cpuHistory);
   List<double> get memoryHistory => List.unmodifiable(_memoryHistory);
   
-  CpuProvider() {
-    // Initialize the native library
-    CpuService.initialize();
+  final DynamicLibrary nativeCpuLib;
+  late final GetCpuUsage _getCpuUsage;
+  late final GetMemoryInfo _getMemoryInfo;
+  late final GetCpuTemperature _getCpuTemperature;
+  late final GetDiskInfo _getDiskInfo;
+  bool _isInitialized = false;
+
+  CpuProvider({required this.nativeCpuLib}) {
+    _initializeNativeFunctions();
+  }
+
+  void _initializeNativeFunctions() {
+    try {
+      // Initialize CPU function
+      _getCpuUsage = nativeCpuLib
+          .lookup<NativeFunction<GetCpuUsageFunc>>('getCpuUsage')
+          .asFunction<GetCpuUsage>();
+
+      // Initialize Memory function
+      _getMemoryInfo = nativeCpuLib
+          .lookup<NativeFunction<GetMemoryInfoFunc>>('getMemoryInfo')
+          .asFunction<GetMemoryInfo>();
+
+      // Initialize Disk info function
+      _getDiskInfo = nativeCpuLib
+          .lookup<NativeFunction<GetDiskInfoFunc>>('getDiskInfo')
+          .asFunction<GetDiskInfo>();
+
+      // Initialize Temperature function
+      _getCpuTemperature = nativeCpuLib
+          .lookup<NativeFunction<GetCpuTemperatureFunc>>('getCpuTemperature')
+          .asFunction<GetCpuTemperature>();
+
+      _isInitialized = true;
+      print('Native functions initialized successfully');
+    } catch (e, stackTrace) {
+      print('Error initializing function pointers: $e');
+      print('Stack trace: $stackTrace');
+      _isInitialized = false;
+    }
   }
   
   /// Start monitoring system statistics at regular intervals
@@ -50,31 +98,51 @@ class CpuProvider extends ChangeNotifier {
   
   /// Update all system statistics from the native code
   Future<void> _updateStats() async {
+    if (!_isInitialized) {
+      print('Native functions not initialized');
+      return;
+    }
+
     try {
-      final cpuUsage = await _cpuService.getCpuUsage();
-      final memoryInfo = await _cpuService.getMemoryInfo();
-      final diskUsage = await _cpuService.getDiskUsage();
-      final temperature = await _cpuService.getTemperature();
-      
+      // Get CPU usage
+      final cpuUsage = _getCpuUsage();
+
+      // Use calloc from ffi package
+      final used = malloc<Uint64>();
+      final total = malloc<Uint64>();
+      _getMemoryInfo(used, total);
+      final memoryUsed = used.value;
+      final memoryTotal = total.value;
+      malloc.free(used);
+      malloc.free(total);
+
+      // Get CPU temperature
+      final temperature = _getCpuTemperature();
+
+      // Get disk info
+      final diskUsed = malloc<Uint64>();
+      final diskTotal = malloc<Uint64>();
+      _getDiskInfo(diskUsed, diskTotal);
+      final usedBytes = diskUsed.value;
+      final totalBytes = diskTotal.value;
+      malloc.free(diskUsed);
+      malloc.free(diskTotal);
+
       _stats = _stats.copyWith(
         cpuUsage: cpuUsage,
-        memoryUsed: memoryInfo['used'],
-        memoryTotal: memoryInfo['total'],
-        diskUsage: diskUsage,
+        memoryUsed: memoryUsed,
+        memoryTotal: memoryTotal,
+        diskUsed: usedBytes,
+        diskTotal: totalBytes,
         temperature: temperature,
       );
-      
-      // Update CPU history
+
       _updateCpuHistory(cpuUsage);
-      
-      // Update memory history - calculate percentage
-      double memoryPercentage = (memoryInfo['used']! / memoryInfo['total']!) * 100;
-      _updateMemoryHistory(memoryPercentage);
-      
+      _updateMemoryHistory((memoryUsed / memoryTotal) * 100);
+
       notifyListeners();
     } catch (e) {
       print('Error updating system stats: $e');
-      // Keep using the last available stats
     }
   }
   

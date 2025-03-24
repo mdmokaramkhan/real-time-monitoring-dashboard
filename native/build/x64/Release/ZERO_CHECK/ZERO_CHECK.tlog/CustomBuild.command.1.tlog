@@ -1,0 +1,10 @@
+^C:\USERS\DELL\PROJECTS\REAL-TIME-MONITORING-DASHBOARD\NATIVE\BUILD\CMAKEFILES\4F577E1F7136D5C94A8C196D1AC65128\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/DELL/projects/real-time-monitoring-dashboard/native -BC:/Users/DELL/projects/real-time-monitoring-dashboard/native/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/DELL/projects/real-time-monitoring-dashboard/native/build/native_cpu_lib.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
