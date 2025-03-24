@@ -67,10 +67,10 @@ class CpuProvider extends ChangeNotifier {
           .asFunction<GetCpuTemperature>();
 
       _isInitialized = true;
-      print('Native functions initialized successfully');
+      debugPrint('Native functions initialized successfully');
     } catch (e, stackTrace) {
-      print('Error initializing function pointers: $e');
-      print('Stack trace: $stackTrace');
+      debugPrint('Error initializing function pointers: $e');
+      debugPrint('Stack trace: $stackTrace');
       _isInitialized = false;
     }
   }
@@ -99,7 +99,7 @@ class CpuProvider extends ChangeNotifier {
   /// Update all system statistics from the native code
   Future<void> _updateStats() async {
     if (!_isInitialized) {
-      print('Native functions not initialized');
+      debugPrint('Native functions not initialized');
       return;
     }
 
@@ -142,7 +142,7 @@ class CpuProvider extends ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      print('Error updating system stats: $e');
+      debugPrint('Error updating system stats: $e');
     }
   }
   

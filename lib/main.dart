@@ -1,3 +1,5 @@
+// ignore_for_file: unused_import
+
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'dart:io' show Platform, Directory, File;
@@ -20,7 +22,7 @@ void main() {
     String? libraryPath;
     for (final searchPath in searchPaths) {
       final fullPath = path.join(Directory.current.path, searchPath);
-      print('Checking library at: $fullPath');
+      debugPrint('Checking library at: $fullPath');
       if (File(fullPath).existsSync()) {
         libraryPath = fullPath;
         break;
@@ -31,11 +33,11 @@ void main() {
       throw Exception('Could not find native library in any of the search paths');
     }
 
-    print('Loading library from: $libraryPath');
+    debugPrint('Loading library from: $libraryPath');
     nativeCpuLib = DynamicLibrary.open(libraryPath);
   } catch (e, stackTrace) {
-    print('Failed to load native library: $e');
-    print('Stack trace: $stackTrace');
+    debugPrint('Failed to load native library: $e');
+    debugPrint('Stack trace: $stackTrace');
     return;
   }
   
