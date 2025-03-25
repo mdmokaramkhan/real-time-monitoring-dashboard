@@ -1,11 +1,13 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:real_time_monitoring_dashboard/screens/widgets/cpu_chart.dart';
-import 'package:real_time_monitoring_dashboard/screens/widgets/memory_chart.dart';
-
+import '../pages/overview_page.dart';
+import '../pages/cpu_page.dart';
+import '../pages/memory_page.dart';
+import '../pages/info_page.dart';
 import '../services/cpu_provider.dart';
 import '../theme/app_theme.dart';
-import 'widgets/metric_card.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -14,24 +16,39 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  
+  // Define tab-specific colors
+  final List<Color> _tabColors = [
+    AppTheme.primaryDark,  // Overview tab - blue
+    AppTheme.success,      // CPU tab - green
+    AppTheme.warning,      // Memory tab - amber
+    AppTheme.info,         // Info tab - red
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<CpuProvider>(context);
-    final stats = provider.stats;
-    final screenSize = MediaQuery.of(context).size;
+    final theme = Theme.of(context);
     
-    // Helper function to determine color based on value
-    Color getValueColor(double percentage) {
-      if (percentage < 50) return AppTheme.success;
-      if (percentage < 80) return AppTheme.warning;
-      return AppTheme.error;
-    }
-
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
+        centerTitle: true,
         title: Row(
           children: [
             Icon(
@@ -76,90 +93,77 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(width: 16),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header section
-              Row(
-                children: [
-                  Text(
-                    'System Overview',
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  const Spacer(),
-                  _buildStatusIndicator(provider.isMonitoring),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Current system performance metrics',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 24),
-              
-              // Top section with system metrics
-              _buildMetricsSection(context, stats, getValueColor, screenSize),
-              
-              const SizedBox(height: 32),
-              
-              // Charts section
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 400,
-                      child: const CpuChartCard(),
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: SizedBox(
-                      height: 400,
-                      child: const MemoryChartCard(),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusIndicator(bool isMonitoring) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: isMonitoring ? AppTheme.success.withAlpha(0.15 * 255 ~/ 1) : AppTheme.error.withAlpha(0.15 * 255 ~/ 1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isMonitoring ? AppTheme.success : AppTheme.error,
-          width: 1,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+      body: Column(
         children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: isMonitoring ? AppTheme.success : AppTheme.error,
-              shape: BoxShape.circle,
-            ),
+          // Listen to tab changes to update the UI
+          ListenableBuilder(
+            listenable: _tabController,
+            builder: (context, _) {
+              final currentTabColor = _tabColors[_tabController.index];
+              
+              return Container(
+                margin: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                decoration: BoxDecoration(
+                  color: theme.cardColor,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.grey.withOpacity(0.1),
+                    width: 1,
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: TabBar(
+                    controller: _tabController,
+                    dividerColor: Colors.transparent,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    indicator: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: currentTabColor.withOpacity(0.1),
+                      border: Border.all(
+                        color: currentTabColor,
+                        width: 1,
+                      ),
+                    ),
+                    labelColor: _tabColors[_tabController.index],
+                    unselectedLabelColor: theme.textTheme.bodyLarge?.color?.withOpacity(0.7),
+                    labelStyle: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                    unselectedLabelStyle: const TextStyle(
+                      fontWeight: FontWeight.normal,
+                      fontSize: 14,
+                    ),
+                    tabs: [
+                      _buildTab(Icons.dashboard_outlined, 'Overview', _tabColors[0], _tabController.index == 0),
+                      _buildTab(Icons.memory_outlined, 'CPU', _tabColors[1], _tabController.index == 1),
+                      _buildTab(Icons.storage_outlined, 'Memory', _tabColors[2], _tabController.index == 2),
+                      _buildTab(Icons.info_outline_rounded, 'Info', _tabColors[3], _tabController.index == 3),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
-          const SizedBox(width: 8),
-          Text(
-            isMonitoring ? 'Monitoring Active' : 'Monitoring Paused',
-            style: TextStyle(
-              color: isMonitoring ? AppTheme.success : AppTheme.error,
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
+          
+          // Tab content
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: const [
+                // Overview Tab
+                OverviewPage(),
+                
+                // CPU Tab
+                CpuPage(),
+                
+                // Memory Tab
+                MemoryPage(),
+                
+                // Info Tab
+                InfoPage(),
+              ],
             ),
           ),
         ],
@@ -167,91 +171,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // Build metrics section with responsive layout
-  Widget _buildMetricsSection(
-    BuildContext context, 
-    dynamic stats, 
-    Color Function(double) getValueColor,
-    Size screenSize,
-  ) {
-    // Define metrics data
-    final metrics = [
-      MetricData(
-        'CPU Usage',
-        stats.cpuString,
-        Icons.memory,
-        getValueColor(stats.cpuUsage),
+  // Custom tab widget with color based on tab
+  Widget _buildTab(IconData icon, String label, Color color, bool isSelected) {
+    return Tab(
+      height: 36,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon, 
+            size: 18,
+            color: isSelected ? color : null,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: isSelected 
+              ? TextStyle(color: color) 
+              : null,
+          ),
+        ],
       ),
-      MetricData(
-        'Memory',
-        stats.memoryString,
-        Icons.storage,
-        getValueColor(stats.memoryUsed / stats.memoryTotal * 100),
-      ),
-      MetricData(
-        'Disk',
-        stats.diskString,
-        Icons.sd_storage,
-        getValueColor(stats.diskUsage),
-      ),
-      MetricData(
-        'Temperature',
-        stats.temperatureString,
-        Icons.thermostat,
-        getValueColor(stats.temperature / 80 * 100),
-      ),
-    ];
-    
-    // Calculate the appropriate layout for desktop
-    int crossAxisCount = _calculateCrossAxisCount(screenSize.width);
-    double aspectRatio = _calculateAspectRatio(screenSize.width);
-    
-    // For desktop-oriented layout
-    return GridView.builder(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount,
-        crossAxisSpacing: 20,
-        mainAxisSpacing: 20,
-        childAspectRatio: aspectRatio,
-      ),
-      itemCount: metrics.length,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemBuilder: (context, index) {
-        final metric = metrics[index];
-        return MetricCard(
-          title: metric.title,
-          value: metric.value,
-          icon: metric.icon,
-          valueColor: metric.color,
-        );
-      },
     );
   }
-
-  // Calculate the appropriate number of columns based on screen width
-  int _calculateCrossAxisCount(double width) {
-    if (width < 600) return 1;      // Small screens
-    if (width < 900) return 2;      // Medium screens
-    if (width < 1400) return 4;     // Large screens
-    return 4;                       // Desktops and large displays
-  }
-  
-  // Calculate the appropriate aspect ratio based on screen width
-  double _calculateAspectRatio(double width) {
-    if (width < 600) return 3.0;    // Small screens
-    if (width < 900) return 3.2;    // Medium screens
-    if (width < 1400) return 3.0;   // Large screens
-    return 3.2;                     // Desktops
-  }
-}
-
-// Helper class to store metric data
-class MetricData {
-  final String title;
-  final String value;
-  final IconData icon;
-  final Color color;
-  
-  MetricData(this.title, this.value, this.icon, this.color);
 }

@@ -1,5 +1,6 @@
 import 'dart:ffi';
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:path/path.dart' as path;
 
 /// A service to interact with native code for CPU and system monitoring
@@ -19,18 +20,18 @@ class CpuService {
     
     try {
       final String libraryPath = _getLibraryPath();
-      print('Loading library from: $libraryPath');
+      debugPrint('Loading library from: $libraryPath');
       
       if (!File(libraryPath).existsSync()) {
-        print('Library not found at: $libraryPath');
+        debugPrint('Library not found at: $libraryPath');
         return; // Early return if library doesn't exist
       }
       
       _dylib = DynamicLibrary.open(libraryPath);
       _initFunctionPointers();
-      print('Native library loaded successfully');
+      debugPrint('Native library loaded successfully');
     } catch (e) {
-      print('Error loading native library: $e');
+      debugPrint('Error loading native library: $e');
       _dylib = null; // Reset in case of error
     }
   }
@@ -64,7 +65,7 @@ class CpuService {
       _getDiskUsagePtr = _dylib!.lookup<NativeFunction<Double Function()>>('getDiskUsage');
       _getTemperaturePtr = _dylib!.lookup<NativeFunction<Double Function()>>('getTemperature');
     } catch (e) {
-      print('Error initializing function pointers: $e');
+      debugPrint('Error initializing function pointers: $e');
       _dylib = null; // Reset library reference
     }
   }
@@ -77,7 +78,7 @@ class CpuService {
         final result = function();
         if (result >= 0) return result;
       } catch (e) {
-        print('Error getting CPU usage: $e');
+        debugPrint('Error getting CPU usage: $e');
       }
     }
     
@@ -102,7 +103,7 @@ class CpuService {
           return {'used': used, 'total': total};
         }
       } catch (e) {
-        print('Error getting memory info: $e');
+        debugPrint('Error getting memory info: $e');
       }
     }
     
@@ -124,7 +125,7 @@ class CpuService {
         final result = function();
         if (result >= 0) return result;
       } catch (e) {
-        print('Error getting disk usage: $e');
+        debugPrint('Error getting disk usage: $e');
       }
     }
     
@@ -143,7 +144,7 @@ class CpuService {
         final result = function();
         if (result >= 0) return result;
       } catch (e) {
-        print('Error getting temperature: $e');
+        debugPrint('Error getting temperature: $e');
       }
     }
     

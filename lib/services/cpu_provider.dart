@@ -73,7 +73,7 @@ class CpuProvider extends ChangeNotifier {
       
       notifyListeners();
     } catch (e) {
-      print('Error updating system stats: $e');
+      debugPrint('Error updating system stats: $e');
       // Keep using the last available stats
     }
   }
