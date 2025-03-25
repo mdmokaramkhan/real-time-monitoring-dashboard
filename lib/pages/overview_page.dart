@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:real_time_monitoring_dashboard/screens/widgets/cpu_chart.dart';
 import 'package:real_time_monitoring_dashboard/screens/widgets/memory_chart.dart';
+import 'package:real_time_monitoring_dashboard/screens/widgets/disk_chart.dart';
+import 'package:real_time_monitoring_dashboard/screens/widgets/system_info_card.dart';
 
 import '../services/cpu_provider.dart';
 import '../theme/app_theme.dart';
@@ -46,22 +48,106 @@ class OverviewPage extends StatelessWidget {
             const SizedBox(height: 32),
             
             // Charts section
-            Row(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 400,
-                    child: const CpuChartCard(),
-                  ),
+                // CPU and Memory charts in a row
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    // On small screens, stack the charts vertically
+                    if (constraints.maxWidth < 800) {
+                      return Column(
+                        children: [
+                          SizedBox(
+                            height: 400,
+                            child: const CpuChartCard(),
+                          ),
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            height: 400,
+                            child: const MemoryChartCard(),
+                          ),
+                        ],
+                      );
+                    }
+                    
+                    // On larger screens, show charts side by side
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 400,
+                            child: const CpuChartCard(),
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        Expanded(
+                          child: SizedBox(
+                            height: 400,
+                            child: const MemoryChartCard(),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
                 ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: SizedBox(
-                    height: 400,
-                    child: const MemoryChartCard(),
-                  ),
+                
+                const SizedBox(height: 20),
+                
+                // Disk chart and System Info row
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Calculate appropriate height based on width
+                    final chartHeight = constraints.maxWidth < 800 ? 300.0 : 350.0;
+                    
+                    // On small screens, stack the cards vertically
+                    if (constraints.maxWidth < 800) {
+                      return Column(
+                        children: [
+                          SizedBox(
+                            height: chartHeight,
+                            child: const DiskChartCard(),
+                          ),
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            height: chartHeight,
+                            child: const SystemInfoCard(),
+                          ),
+                        ],
+                      );
+                    }
+                    
+                    // On larger screens, show cards side by side with responsive sizing
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Disk chart (takes 60% of the width on larger screens)
+                        Expanded(
+                          flex: 6,
+                          child: SizedBox(
+                            height: chartHeight,
+                            child: const DiskChartCard(),
+                          ),
+                        ),
+                        
+                        const SizedBox(width: 20),
+                        
+                        // System info card (takes 40% of the width on larger screens)
+                        Expanded(
+                          flex: 4,
+                          child: SizedBox(
+                            height: chartHeight,
+                            child: const SystemInfoCard(),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
                 ),
+                
+                // Add some bottom padding
+                const SizedBox(height: 20),
               ],
             ),
           ],
