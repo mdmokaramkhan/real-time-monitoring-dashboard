@@ -7,6 +7,7 @@ import '../pages/cpu_page.dart';
 import '../pages/memory_page.dart';
 import '../pages/info_page.dart';
 import '../services/cpu_provider.dart';
+import '../services/theme_provider.dart';
 import '../theme/app_theme.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -41,8 +42,10 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<CpuProvider>(context);
+    final cpuProvider = Provider.of<CpuProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
     final theme = Theme.of(context);
+    final isDarkMode = themeProvider.isDarkMode;
     
     return Scaffold(
       appBar: AppBar(
@@ -61,12 +64,12 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
         ),
         actions: [
           IconButton(
-            icon: Icon(provider.isMonitoring ? Icons.pause : Icons.play_arrow),
-            tooltip: provider.isMonitoring ? 'Pause Monitoring' : 'Start Monitoring',
+            icon: Icon(cpuProvider.isMonitoring ? Icons.pause : Icons.play_arrow),
+            tooltip: cpuProvider.isMonitoring ? 'Pause Monitoring' : 'Start Monitoring',
             onPressed: () {
-              provider.isMonitoring 
-                ? provider.stopMonitoring() 
-                : provider.startMonitoring();
+              cpuProvider.isMonitoring 
+                ? cpuProvider.stopMonitoring() 
+                : cpuProvider.startMonitoring();
             },
           ),
           const SizedBox(width: 8),
@@ -79,6 +82,13 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                 const SnackBar(content: Text('Refreshing data...')),
               );
             },
+          ),
+          const SizedBox(width: 8),
+          // Theme toggle button
+          IconButton(
+            icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
+            tooltip: isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+            onPressed: () => _toggleTheme(context),
           ),
           const SizedBox(width: 8),
           IconButton(
@@ -167,6 +177,20 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Toggle theme method
+  void _toggleTheme(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    themeProvider.toggleTheme();
+    
+    // Show a snackbar to confirm theme change
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Switched to ${themeProvider.isDarkMode ? 'Dark' : 'Light'} Mode'),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
