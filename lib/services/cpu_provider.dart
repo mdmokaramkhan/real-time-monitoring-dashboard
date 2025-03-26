@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:real_time_monitoring_dashboard/models/system_info.dart';
 import 'package:real_time_monitoring_dashboard/services/cpu_services.dart';
 import '../models/system_stats.dart';
 
@@ -9,14 +11,16 @@ class CpuProvider extends ChangeNotifier {
   SystemStats _stats = SystemStats(
     cpuUsage: 0.0,
     memoryUsed: 0,
-    memoryTotal: 8192, // 8GB
+    memoryTotal: 0,
     diskUsage: 0.0,
     temperature: 0.0,
     diskUsed: 0.0,
-    diskTotal: 1024 * 1024, // 1TB in MB
+    diskTotal: 0.0,
   );
+  SystemInfo _systemInfo = SystemInfo();
   Timer? _updateTimer;
   bool _isMonitoring = false;
+  bool _nativeLibraryLoaded = false;
   
   // Track histories
   final List<double> _cpuHistory = [];
@@ -25,17 +29,93 @@ class CpuProvider extends ChangeNotifier {
   final int _maxHistoryPoints = 30;
   
   SystemStats get stats => _stats;
+  SystemInfo get systemInfo => _systemInfo;
   bool get isMonitoring => _isMonitoring;
   List<double> get cpuHistory => List.unmodifiable(_cpuHistory);
   List<double> get memoryHistory => List.unmodifiable(_memoryHistory);
   List<double> get diskHistory => List.unmodifiable(_diskHistory);
+  bool get nativeLibraryLoaded => _nativeLibraryLoaded;
   
   CpuProvider() {
     // Initialize the native library
     CpuService.initialize();
     
-    // Start with some initial data
-    _simulateData();
+    // Initial setup sequence
+    _initializeData();
+  }
+  
+  /// Set up initial data loading and monitoring
+  Future<void> _initializeData() async {
+    // Try to get initial data to check if native library works
+    await _checkNativeLibrary();
+    
+    // Get initial system statistics
+    await _updateStats();
+    
+    // Get detailed system information
+    await _fetchSystemInfo();
+    
+    // Automatically start monitoring with a small delay to ensure UI is ready
+    Future.delayed(const Duration(milliseconds: 500), () {
+      startMonitoring();
+    });
+  }
+  
+  /// Test if the native library is loaded and working
+  Future<void> _checkNativeLibrary() async {
+    try {
+      final cpuUsage = await _cpuService.getCpuUsage();
+      final memoryInfo = await _cpuService.getMemoryInfo();
+      
+      // Check if we got non-zero values back - this would indicate
+      // the native library is working properly
+      if (cpuUsage > 0 || (memoryInfo['used'] ?? 0) > 0) {
+        _nativeLibraryLoaded = true;
+        debugPrint('Native library successfully loaded and working!');
+      } else {
+        debugPrint('Native library loaded but returned zero values');
+        _nativeLibraryLoaded = false;
+      }
+    } catch (e) {
+      debugPrint('Native library check failed: $e');
+      _nativeLibraryLoaded = false;
+    }
+  }
+  
+  /// Fetch system information from native code
+  Future<void> _fetchSystemInfo() async {
+    try {
+      if (_nativeLibraryLoaded) {
+        // Get system info using native code
+        final cpuModel = await _cpuService.getCpuModel();
+        final osVersion = await _cpuService.getOsVersion();
+        final hostname = await _cpuService.getHostname();
+        final kernelVersion = await _cpuService.getKernelVersion();
+        final cpuCores = await _cpuService.getCpuCoreCount();
+        
+        _systemInfo = SystemInfo(
+          cpuModel: cpuModel,
+          osVersion: osVersion,
+          hostname: hostname,
+          kernelVersion: kernelVersion,
+          cpuCores: cpuCores,
+        );
+      } else {
+        // Use platform information if native library isn't working
+        debugPrint('Using simulated system info because native library is not working');
+        _systemInfo = SystemInfo(
+          cpuModel: 'Simulated CPU',
+          osVersion: '${Platform.operatingSystem} ${Platform.operatingSystemVersion}',
+          hostname: 'Simulated Host',
+          kernelVersion: 'Simulated Kernel',
+          cpuCores: 4, // Assume 4 cores
+        );
+      }
+      
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error fetching system info: $e');
+    }
   }
   
   /// Start monitoring system statistics at regular intervals
@@ -62,73 +142,70 @@ class CpuProvider extends ChangeNotifier {
   /// Update all system statistics from the native code
   Future<void> _updateStats() async {
     try {
-      final cpuUsage = await _cpuService.getCpuUsage();
-      final memoryInfo = await _cpuService.getMemoryInfo();
-      final diskUsage = await _cpuService.getDiskUsage();
-      final temperature = await _cpuService.getTemperature();
+      double cpuUsage;
+      Map<String, int> memoryInfo;
+      double diskUsed;
+      double diskTotal;
+      double diskUsage;
+      double temperature;
       
-      // Get disk used and total in MB
-      final diskTotal = 1024 * 1024; // 1TB in MB
-      final diskUsed = (diskUsage / 100) * diskTotal;
+      if (_nativeLibraryLoaded) {
+        // Get system stats using native code
+        cpuUsage = await _cpuService.getCpuUsage();
+        memoryInfo = await _cpuService.getMemoryInfo();
+        diskUsed = await _cpuService.getDiskUsed();
+        diskTotal = await _cpuService.getDiskTotal();
+        diskUsage = diskTotal > 0 ? (diskUsed / diskTotal * 100) : 0.0;
+        temperature = await _cpuService.getTemperature();
+      } else {
+        // Use simulated data if native library isn't working
+        debugPrint('Using simulated data because native library is not working');
+        final random = Random();
+        
+        // CPU: 10-80% usage
+        cpuUsage = 10.0 + random.nextDouble() * 70.0;
+        
+        // Memory: 4-12GB of 16GB
+        final memUsed = 4096 + random.nextInt(8192);
+        final memTotal = 16384;
+        memoryInfo = {'used': memUsed, 'total': memTotal};
+        
+        // Disk: 40-90% usage of 500GB
+        diskUsage = 40.0 + random.nextDouble() * 50.0;
+        diskTotal = 500 * 1024; // 500GB in MB
+        diskUsed = (diskUsage / 100) * diskTotal;
+        
+        // Temperature: 35-60°C
+        temperature = 35.0 + random.nextDouble() * 25.0;
+      }
+      
+      final memUsed = memoryInfo['used'] ?? 0;
+      final memTotal = memoryInfo['total'] ?? 1;
       
       _stats = _stats.copyWith(
         cpuUsage: cpuUsage,
-        memoryUsed: memoryInfo['used'],
-        memoryTotal: memoryInfo['total'],
+        memoryUsed: memUsed,
+        memoryTotal: memTotal,
         diskUsage: diskUsage,
         temperature: temperature,
         diskUsed: diskUsed,
-        diskTotal: diskTotal.toDouble(),
+        diskTotal: diskTotal,
       );
       
       // Update histories
       _updateCpuHistory(cpuUsage);
-      _updateMemoryHistory((memoryInfo['used']! / memoryInfo['total']!) * 100);
+      _updateMemoryHistory(memTotal > 0 ? (memUsed / memTotal) * 100 : 0.0);
       _updateDiskHistory(diskUsage);
       
       notifyListeners();
     } catch (e) {
       debugPrint('Error updating system stats: $e');
-      // If there's an error, use simulated data instead
-      _simulateData();
     }
   }
   
-  /// Generate simulated data (for testing or when real data is unavailable)
-  void _simulateData() {
-    final random = Random();
-    
-    // CPU: 10-80% usage
-    final cpuUsage = 10.0 + random.nextDouble() * 70.0;
-    
-    // Memory: 2-7GB used of 8GB
-    final memoryUsed = 2048 + random.nextInt(5120);
-    final memoryTotal = 8192; // 8GB
-    
-    // Disk: 40-90% usage of 1TB
-    final diskUsage = 40.0 + random.nextDouble() * 50.0;
-    final diskTotal = 1024 * 1024; // 1TB in MB
-    final diskUsed = (diskUsage / 100) * diskTotal;
-    
-    // Temperature: 35-75°C
-    final temperature = 35.0 + random.nextDouble() * 40.0;
-    
-    _stats = _stats.copyWith(
-      cpuUsage: cpuUsage,
-      memoryUsed: memoryUsed,
-      memoryTotal: memoryTotal,
-      diskUsage: diskUsage,
-      temperature: temperature,
-      diskUsed: diskUsed,
-      diskTotal: diskTotal.toDouble(),
-    );
-    
-    // Update histories
-    _updateCpuHistory(cpuUsage);
-    _updateMemoryHistory((memoryUsed / memoryTotal) * 100);
-    _updateDiskHistory(diskUsage);
-    
-    notifyListeners();
+  /// Refresh system information
+  Future<void> refreshSystemInfo() async {
+    await _fetchSystemInfo();
   }
   
   /// Update the CPU usage history
@@ -155,7 +232,7 @@ class CpuProvider extends ChangeNotifier {
     }
   }
   
-  /// Get smoothed CPU history using moving average (only last 30 seconds)
+  /// Get smoothed CPU history using moving average
   List<double> get smoothedCpuHistory {
     if (_cpuHistory.isEmpty) return [];
     
@@ -199,6 +276,32 @@ class CpuProvider extends ChangeNotifier {
     }
     
     return smoothedData;
+  }
+  
+  /// Force reload all data
+  Future<void> refreshAllData() async {
+    final wasMonitoring = _isMonitoring;
+    
+    // Temporarily stop monitoring
+    if (wasMonitoring) {
+      stopMonitoring();
+    }
+    
+    // Clear existing history data for a fresh start
+    _cpuHistory.clear();
+    _memoryHistory.clear();
+    _diskHistory.clear();
+    
+    // Reload all data
+    await _updateStats();
+    await _fetchSystemInfo();
+    
+    // Restart monitoring
+    if (wasMonitoring) {
+      startMonitoring();
+    }
+    
+    notifyListeners();
   }
   
   @override

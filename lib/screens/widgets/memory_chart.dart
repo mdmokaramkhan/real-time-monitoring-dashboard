@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 
+import '../../models/system_stats.dart';
 import '../../services/cpu_provider.dart';
 import '../../theme/app_theme.dart';
 
@@ -34,72 +35,31 @@ class MemoryChartCard extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(16.0), // Reduced padding to match disk chart
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header section - more compact
             Row(
               children: [
-                Icon(
-                  Icons.storage_outlined,
-                  color: Colors.purple,
-                  size: 22,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Memory Usage',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(width: 10),
-                _buildMemoryIndicator(context, memoryPercentage),
+                Icon(Icons.memory_rounded, color: Colors.purple, size: 20),
+                const SizedBox(width: 6),
+                Text('Memory Usage', style: Theme.of(context).textTheme.titleLarge),
                 const Spacer(),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.file_download, size: 18),
-                  label: const Text('Export'),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Export feature coming soon')),
-                    );
-                  },
-                ),
+                _buildMemoryIndicator(context, memoryPercentage),
               ],
             ),
-            const SizedBox(height: 4),
-            Padding(
-              padding: const EdgeInsets.only(left: 30.0),
-              child: Text(
-                'Monitoring last 30 seconds of memory activity',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                _buildStatCard(
-                  context, 
-                  'Current', 
-                  '${memoryPercentage.toStringAsFixed(1)}%',
-                  color: Colors.purple
-                ),
-                const SizedBox(width: 12),
-                _buildStatCard(
-                  context, 
-                  'Used', 
-                  '${(stats.memoryUsed / 1024).toStringAsFixed(1)} GB',
-                  color: Colors.deepPurple
-                ),
-                const SizedBox(width: 12),
-                _buildStatCard(
-                  context, 
-                  'Total', 
-                  '${(stats.memoryTotal / 1024).toStringAsFixed(1)} GB',
-                  color: Colors.blueGrey
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
+            
+            const SizedBox(height: 12), // Reduced spacing
+            
+            // Progress bar section
+            _buildUsageProgressBar(context, stats, memoryPercentage),
+            
+            const SizedBox(height: 12), // Reduced spacing
+            const Divider(height: 1),
+            const SizedBox(height: 8), // Reduced spacing
+            
+            // Memory chart
             Expanded(
               child: _buildMemoryChart(context),
             ),
@@ -110,14 +70,7 @@ class MemoryChartCard extends StatelessWidget {
   }
 
   Widget _buildMemoryIndicator(BuildContext context, double memoryPercentage) {
-    Color color;
-    if (memoryPercentage < 50) {
-      color = AppTheme.success;
-    } else if (memoryPercentage < 80) {
-      color = AppTheme.warning;
-    } else {
-      color = AppTheme.error;
-    }
+    Color color = _getUsageColor(memoryPercentage);
     
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -135,65 +88,71 @@ class MemoryChartCard extends StatelessWidget {
       ),
     );
   }
-  
-  Widget _buildStatCard(BuildContext context, String label, String value, {required Color color}) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: Theme.of(context).dividerColor.withOpacity(0.2),
+
+  Widget _buildUsageProgressBar(BuildContext context, SystemStats stats, double memoryPercentage) {
+    final usageColor = _getUsageColor(memoryPercentage);
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Progress bar
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: LinearProgressIndicator(
+            value: memoryPercentage / 100,
+            backgroundColor: Colors.grey.shade200,
+            color: usageColor,
+            minHeight: 10, // Slightly smaller for compactness
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        
+        // Labels for used and free - more compact
+        const SizedBox(height: 4), // Reduced spacing
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              'Used: ${(stats.memoryUsed / 1024).toStringAsFixed(1)} GB',
+              style: TextStyle(
+                fontSize: 12, // Smaller font
+                fontWeight: FontWeight.w500,
+                color: usageColor,
               ),
             ),
-            const SizedBox(height: 4),
             Text(
-              value,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
+              'Free: ${((stats.memoryTotal - stats.memoryUsed) / 1024).toStringAsFixed(1)} GB',
+              style: TextStyle(
+                fontSize: 12, // Smaller font
+                fontWeight: FontWeight.w500,
+                color: Colors.grey.shade600,
               ),
             ),
           ],
         ),
-      ),
+      ],
     );
   }
-
+  
   Widget _buildMemoryChart(BuildContext context) {
     final cpuProvider = Provider.of<CpuProvider>(context);
     final memoryData = cpuProvider.smoothedMemoryHistory;
     
+    // If no data, show loading state
     if (memoryData.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.bar_chart,
-              size: 64,
-              color: Colors.purple.withAlpha(0.3 * 255 ~/ 1),
+            CircularProgressIndicator(
+              color: Colors.purple,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             Text(
-              'Collecting memory data...',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Start monitoring to see real-time memory usage',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
+              'Loading memory information...',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 14,
+              ),
             ),
           ],
         ),
@@ -206,7 +165,7 @@ class MemoryChartCard extends StatelessWidget {
     }
     
     return Padding(
-      padding: const EdgeInsets.only(right: 16, left: 6, top: 16, bottom: 16),
+      padding: const EdgeInsets.only(right: 16, left: 6, top: 8, bottom: 8),
       child: LineChart(
         LineChartData(
           lineTouchData: LineTouchData(
@@ -254,10 +213,10 @@ class MemoryChartCard extends StatelessWidget {
             ),
             bottomTitles: AxisTitles(
               axisNameWidget: const Padding(
-                padding: EdgeInsets.only(top: 10.0),
-                child: Text('Last 30 seconds'),
+                padding: EdgeInsets.only(top: 8.0),
+                child: Text('Last 30 seconds', style: TextStyle(fontSize: 12)),
               ),
-              axisNameSize: 20,
+              axisNameSize: 16,
               sideTitles: SideTitles(
                 showTitles: true,
                 reservedSize: 30,
@@ -283,10 +242,10 @@ class MemoryChartCard extends StatelessWidget {
             ),
             leftTitles: AxisTitles(
               axisNameWidget: const Padding(
-                padding: EdgeInsets.only(right: 10.0),
-                child: Text('Memory %'),
+                padding: EdgeInsets.only(right: 8.0),
+                child: Text('Memory %', style: TextStyle(fontSize: 12)),
               ),
-              axisNameSize: 20,
+              axisNameSize: 16,
               sideTitles: SideTitles(
                 showTitles: true,
                 interval: 20,
@@ -300,7 +259,7 @@ class MemoryChartCard extends StatelessWidget {
                     ),
                   );
                 },
-                reservedSize: 36,
+                reservedSize: 30,
               ),
             ),
           ),
@@ -348,5 +307,13 @@ class MemoryChartCard extends StatelessWidget {
         ),
       ),
     );
+  }
+  
+  // Helper methods
+
+  Color _getUsageColor(double percentage) {
+    if (percentage < 50) return AppTheme.success;
+    if (percentage < 80) return AppTheme.warning;
+    return AppTheme.error;
   }
 }
