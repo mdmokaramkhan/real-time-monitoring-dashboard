@@ -82,7 +82,25 @@ flutter run -d linux    # For Linux
 
 ## 📸 Screenshots
 
-[Screenshots of the dashboard will be added here]
+### Light Mode
+<div align="center">
+  <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 5px;">
+    <img src="screenshots/1.png" width="200" alt="Dashboard Overview - Light">
+    <img src="screenshots/2.png" width="200" alt="System Performance - Light">
+    <img src="screenshots/3.png" width="200" alt="Memory Usage - Light">
+    <img src="screenshots/4.png" width="200" alt="Disk Analysis - Light">
+  </div>
+</div>
+
+### Dark Mode
+<div align="center">
+  <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 5px;">
+    <img src="screenshots/1-d.png" width="200" alt="Dashboard Overview - Dark">
+    <img src="screenshots/2-d.png" width="200" alt="System Performance - Dark">
+    <img src="screenshots/3-d.png" width="200" alt="Memory Usage - Dark">
+    <img src="screenshots/4-d.png" width="200" alt="Disk Analysis - Dark">
+  </div>
+</div>
 
 ## 📄 License
 
