@@ -5,7 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 
 import '../../services/cpu_provider.dart';
-import '../../theme/app_theme.dart';
+// import '../../theme/app_theme.dart';
 
 class CpuChartCard extends StatelessWidget {
   const CpuChartCard({
@@ -50,7 +50,7 @@ class CpuChartCard extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(width: 10),
-                _buildCpuIndicator(context, stats.cpuUsage),
+                // _buildCpuIndicator(context, stats.cpuUsage),
                 const Spacer(),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.file_download, size: 18),
@@ -108,32 +108,32 @@ class CpuChartCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCpuIndicator(BuildContext context, double cpuUsage) {
-    Color color;
-    if (cpuUsage < 50) {
-      color = AppTheme.success;
-    } else if (cpuUsage < 80) {
-      color = AppTheme.warning;
-    } else {
-      color = AppTheme.error;
-    }
+  // Widget _buildCpuIndicator(BuildContext context, double cpuUsage) {
+  //   Color color;
+  //   if (cpuUsage < 50) {
+  //     color = AppTheme.success;
+  //   } else if (cpuUsage < 80) {
+  //     color = AppTheme.warning;
+  //   } else {
+  //     color = AppTheme.error;
+  //   }
     
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        '${cpuUsage.toStringAsFixed(1)}%',
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.bold,
-          fontSize: 13,
-        ),
-      ),
-    );
-  }
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+  //     decoration: BoxDecoration(
+  //       color: color.withOpacity(0.15),
+  //       borderRadius: BorderRadius.circular(12),
+  //     ),
+  //     child: Text(
+  //       '${cpuUsage.toStringAsFixed(1)}%',
+  //       style: TextStyle(
+  //         color: color,
+  //         fontWeight: FontWeight.bold,
+  //         fontSize: 13,
+  //       ),
+  //     ),
+  //   );
+  // }
   
   Widget _buildStatCard(BuildContext context, String label, String value, {required Color color}) {
     return Expanded(
