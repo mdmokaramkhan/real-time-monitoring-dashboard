@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:real_time_monitoring_dashboard/screens/widgets/cpu_chart.dart';
 import 'package:real_time_monitoring_dashboard/screens/widgets/memory_chart.dart';
-import 'package:real_time_monitoring_dashboard/screens/widgets/disk_chart.dart';
 import 'package:real_time_monitoring_dashboard/screens/widgets/system_info_card.dart';
+// ignore: unused_import
+import 'package:real_time_monitoring_dashboard/widgets/library_status_widget.dart';
 
 import '../services/cpu_provider.dart';
 import '../theme/app_theme.dart';
 import '../screens/widgets/metric_card.dart';
+import '../screens/widgets/disk_storage_card.dart';
 
 class OverviewPage extends StatelessWidget {
   const OverviewPage({super.key});
@@ -19,11 +21,12 @@ class OverviewPage extends StatelessWidget {
     final screenSize = MediaQuery.of(context).size;
     
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            SizedBox(height: 20),
             // Header section
             Row(
               children: [
@@ -40,7 +43,12 @@ class OverviewPage extends StatelessWidget {
               'Current system performance metrics',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            
+            // // Add the library status widget
+            // const LibraryStatusWidget(),
+            
+            // const SizedBox(height: 16),
             
             // Top section with system metrics
             _buildMetricsSection(context, stats, screenSize),
@@ -107,7 +115,7 @@ class OverviewPage extends StatelessWidget {
                         children: [
                           SizedBox(
                             height: chartHeight,
-                            child: const DiskChartCard(),
+                            child: const DiskStorageCard(),
                           ),
                           const SizedBox(height: 20),
                           SizedBox(
@@ -122,12 +130,12 @@ class OverviewPage extends StatelessWidget {
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Disk chart (takes 60% of the width on larger screens)
+                        // Disk storage card (takes 60% of the width on larger screens)
                         Expanded(
                           flex: 6,
                           child: SizedBox(
                             height: chartHeight,
-                            child: const DiskChartCard(),
+                            child: const DiskStorageCard(),
                           ),
                         ),
                         
