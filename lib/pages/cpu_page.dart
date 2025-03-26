@@ -11,7 +11,7 @@ class CpuPage extends StatefulWidget {
   const CpuPage({super.key});
 
   @override
-  _CpuPageState createState() => _CpuPageState();
+  State<CpuPage> createState() => _CpuPageState();
 }
 
 class _CpuPageState extends State<CpuPage> {
