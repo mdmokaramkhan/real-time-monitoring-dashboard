@@ -98,24 +98,30 @@ You can download the pre-built application:
 
 ## 📸 Screenshots
 
-### Light Mode
 <div align="center">
-  <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 5px;">
-    <img src="screenshots/1.png" width="200" alt="Dashboard Overview - Light">
-    <img src="screenshots/2.png" width="200" alt="System Performance - Light">
-    <img src="screenshots/3.png" width="200" alt="Memory Usage - Light">
-    <img src="screenshots/4.png" width="200" alt="Disk Analysis - Light">
-  </div>
-</div>
-
-### Dark Mode
-<div align="center">
-  <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 5px;">
-    <img src="screenshots/1-d.png" width="200" alt="Dashboard Overview - Dark">
-    <img src="screenshots/2-d.png" width="200" alt="System Performance - Dark">
-    <img src="screenshots/3-d.png" width="200" alt="Memory Usage - Dark">
-    <img src="screenshots/4-d.png" width="200" alt="Disk Analysis - Dark">
-  </div>
+  <h3>Light Mode</h3>
+  <table>
+    <tr>
+      <td><img src="screenshots/1.png" width="400" alt="Dashboard Overview - Light"></td>
+      <td><img src="screenshots/2.png" width="400" alt="System Performance - Light"></td>
+    </tr>
+    <tr>
+      <td><img src="screenshots/3.png" width="400" alt="Memory Usage - Light"></td>
+      <td><img src="screenshots/4.png" width="400" alt="Disk Analysis - Light"></td>
+    </tr>
+  </table>
+  
+  <h3>Dark Mode</h3>
+  <table>
+    <tr>
+      <td><img src="screenshots/1-d.png" width="400" alt="Dashboard Overview - Dark"></td>
+      <td><img src="screenshots/2-d.png" width="400" alt="System Performance - Dark"></td>
+    </tr>
+    <tr>
+      <td><img src="screenshots/3-d.png" width="400" alt="Memory Usage - Dark"></td>
+      <td><img src="screenshots/4-d.png" width="400" alt="Disk Analysis - Dark"></td>
+    </tr>
+  </table>
 </div>
 
 ## 📄 License
