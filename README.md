@@ -80,6 +80,22 @@ flutter run -d macos    # For macOS
 flutter run -d linux    # For Linux
 ```
 
+## 📥 Download
+
+You can download the pre-built application:
+
+| Platform | Download Link |
+|----------|--------------|
+| **macOS** | [Real-Time Monitoring Dashboard.app](screenshots/real_time_monitoring_dashboard.app) |
+
+### Installation Instructions
+
+1. **macOS**:
+   - Download the .app file
+   - Move to your Applications folder
+   - Right-click and select "Open" (required for non-App Store apps)
+   - Grant necessary permissions for system monitoring when prompted
+
 ## 📸 Screenshots
 
 ### Light Mode
