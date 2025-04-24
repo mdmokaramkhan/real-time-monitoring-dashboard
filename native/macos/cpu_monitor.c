@@ -1,18 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <mach/mach.h>
 #include <mach/processor_info.h>
+#include <time.h>
+#include <sys/time.h>
+#include <mach/mach.h>
 #include <mach/mach_host.h>
 #include <sys/sysctl.h>
-#include <sys/mount.h>
-#include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/statvfs.h>
-#include <time.h>
-#include <sys/time.h>
-#include <IOKit/IOKitLib.h>
 
 // Export functions for FFI
 #ifdef __cplusplus
